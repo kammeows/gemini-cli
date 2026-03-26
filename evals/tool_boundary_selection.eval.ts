@@ -16,20 +16,20 @@ describe('tool_boundary_selection', () => {
 
   /**
    * Scenario A: "What is the latest React version?"
-   * Expectation: Agent uses google_web_search for open-ended queries.
    */
   evalTest('USUALLY_PASSES', {
     name: 'should use google_web_search for current info',
     prompt: 'What is the latest stable React version as of today?',
     assert: async (rig: TestRig, result: string) => {
       const wasToolCalled = await rig.waitForToolCall('google_web_search');
+
       expect(
         wasToolCalled,
         'Expected google_web_search to be called for a general knowledge query',
       ).toBe(true);
 
       assertModelHasOutput(result);
-      // We check if the result mentions React and looks like a version number
+
       checkModelOutputContent(result, {
         expectedContent: [/React/i, /\d+\.\d+\.\d+/],
         testName: `${TEST_PREFIX}React version search`,
@@ -38,24 +38,26 @@ describe('tool_boundary_selection', () => {
   });
 
   /**
-   * Scenario B: "Summarize this [url]"
-   * Expectation: Agent uses web_fetch, NOT google_web_search when a specific URL is provided.
+   * Scenario B: URL → must use web_fetch, NOT search
    */
   evalTest('USUALLY_PASSES', {
     name: 'should use web_fetch for specific URLs, not search',
     prompt:
-      'Summarize the content of this GitHub issue: https://github.com/google/gemini-cli/issues/1',
+      'Summarize the content of this GitHub issue: https://github.com/google-gemini/gemini-cli/issues/17683',
     assert: async (rig: TestRig, result: string) => {
+      // Wait for expected behavior
       const fetchCalled = await rig.waitForToolCall('web_fetch');
-      // I understand the following line causes unnecessary latency, so a more efficient approach would be to allow the agent to execute normally and
-      // then synchronously inspect the execution trace
-      // and assert absence by checking that the undesired tool does not appear in the recorded calls
-      const searchCalled = await rig.waitForToolCall('google_web_search', 5000); // Short wait to ensure it wasn't called
 
       expect(
         fetchCalled,
         'Expected web_fetch to be called for a specific URL',
       ).toBe(true);
+
+      const toolLogs = rig.readToolLogs();
+
+      const searchCalled = toolLogs.some(
+        (log) => log.toolRequest.name === 'google_web_search',
+      );
 
       expect(
         searchCalled,
@@ -63,6 +65,7 @@ describe('tool_boundary_selection', () => {
       ).toBe(false);
 
       assertModelHasOutput(result);
+
       checkModelOutputContent(result, {
         testName: `${TEST_PREFIX}Specific URL fetch`,
       });
@@ -70,8 +73,7 @@ describe('tool_boundary_selection', () => {
   });
 
   /**
-   * Scenario C: "Summarize the local README.md"
-   * Expectation: Agent uses read_file (or read_many_files), NEITHER web tool.
+   * Scenario C: Local file → must use local tools, NO web tools
    */
   evalTest('USUALLY_PASSES', {
     name: 'should use local tools for local files, no web tools',
@@ -81,15 +83,28 @@ describe('tool_boundary_selection', () => {
     },
     prompt: 'Summarize the local README.md file in this directory.',
     assert: async (rig: TestRig, result: string) => {
+      // Wait for at least one valid local tool
       const readFileCalled = await rig.waitForToolCall('read_file');
-      const readManyCalled = await rig.waitForToolCall('read_many_files', 2000);
-      const searchCalled = await rig.waitForToolCall('google_web_search', 2000);
-      const fetchCalled = await rig.waitForToolCall('web_fetch', 2000);
+
+      // NOTE: Some runs may use read_many_files instead, so we check both in trace
+      const toolLogs = rig.readToolLogs();
+
+      const readManyCalled = toolLogs.some(
+        (log) => log.toolRequest.name === 'read_many_files',
+      );
 
       expect(
         readFileCalled || readManyCalled,
-        'Expected local read tool to be called for a local file',
+        'Expected a local read tool to be called for a local file',
       ).toBe(true);
+
+      const searchCalled = toolLogs.some(
+        (log) => log.toolRequest.name === 'google_web_search',
+      );
+
+      const fetchCalled = toolLogs.some(
+        (log) => log.toolRequest.name === 'web_fetch',
+      );
 
       expect(
         searchCalled,
@@ -102,6 +117,7 @@ describe('tool_boundary_selection', () => {
       ).toBe(false);
 
       assertModelHasOutput(result);
+
       checkModelOutputContent(result, {
         expectedContent: [/Gemini CLI/, /local test file/],
         testName: `${TEST_PREFIX}Local file read boundary`,
