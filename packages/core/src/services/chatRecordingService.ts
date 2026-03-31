@@ -558,6 +558,32 @@ export class ChatRecordingService {
   }
 
   /**
+   * Finds the file path for a given session ID by searching the chats directory.
+   */
+  findSessionFile(sessionId: string): string | null {
+    try {
+      const chatsDir = path.join(
+        this.config.storage.getProjectTempDir(),
+        'chats',
+      );
+      if (!fs.existsSync(chatsDir)) return null;
+
+      const files = fs.readdirSync(chatsDir);
+      // Files are named: session-YYYY-MM-DD-HH-mm-SHORTID.json
+      // We check if the filename contains the full sessionId or ends with the short ID.
+      const sessionFile = files.find(
+        (f) =>
+          f.includes(sessionId) || f.endsWith(`${sessionId.slice(0, 8)}.json`),
+      );
+
+      return sessionFile ? path.join(chatsDir, sessionFile) : null;
+    } catch (error) {
+      debugLogger.error('Error finding session file.', error);
+      return null;
+    }
+  }
+
+  /**
    * Deletes a session file by session ID.
    */
   deleteSession(sessionId: string): void {

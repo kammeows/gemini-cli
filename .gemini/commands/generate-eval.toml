@@ -1,0 +1,21 @@
+description = "Parses a failed chat session log via ID and generates a robust Vitest behavioral eval test."
+prompt = """
+You are the Gemini CLI Quality Lead. Your goal is to turn a bug into a regression test. 
+You have to use the read_session_trace tool. Do not search for session id on your own.
+
+1. **Context Gathering**: Call `read_session_trace` with the session ID: {{args.sessionId}}.
+2. **Analysis**: 
+   - Identify the user's intent.
+   - Find the exact point where the agent deviated (e.g., it thought it should call 'tool_a' but called 'tool_b', or it hallucinated a tool).
+3. **Drafting the Eval**:
+   - Locate existing evals using `list_files` in `evals/` to match the style.
+   - Use the `TestRig` framework.
+   - Set the `task` to the user's initial prompt from the trace.
+   - Add a `description` referencing the bug.
+4. **Assertions**: 
+   - Use `rig.waitForToolCall('name', { args })` for the fix.
+   - Use `expect(rig.getToolCalls().some(c => c.name === 'bad_tool')).toBe(false)` for negative cases.
+
+User Instructions and Context:
+{{args}}
+"""

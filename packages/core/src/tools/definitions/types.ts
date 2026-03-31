@@ -28,6 +28,7 @@ export interface ToolDefinition {
  * Explicit mapping of all core tools for a specific model family.
  */
 export interface CoreToolSet {
+  read_session_trace: FunctionDeclaration;
   read_file: FunctionDeclaration;
   write_file: FunctionDeclaration;
   grep_search: FunctionDeclaration;

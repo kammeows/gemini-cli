@@ -25,6 +25,7 @@ import {
   GET_INTERNAL_DOCS_TOOL_NAME,
   ASK_USER_TOOL_NAME,
   ENTER_PLAN_MODE_TOOL_NAME,
+  READ_SESSION_TRACE_TOOL_NAME,
 } from '../base-declarations.js';
 import {
   getShellDeclaration,
@@ -36,6 +37,22 @@ import {
  * Gemini 3 tool set. Initially a copy of the default legacy set.
  */
 export const GEMINI_3_SET: CoreToolSet = {
+  read_session_trace: {
+    name: READ_SESSION_TRACE_TOOL_NAME,
+    description: `Reads and returns the complete message and tool history of a specified chat session from the local filesystem. This trace includes user prompts, model reasoning (thoughts), tool calls, and their results. It is useful for analyzing previous agent behavior, debugging failures, or generating regression tests from historical sessions.`,
+    parametersJsonSchema: {
+      type: 'object',
+      properties: {
+        sessionId: {
+          description:
+            'The unique identifier of the chat session to read (e.g., a UUID or the short filename ID).',
+          type: 'string',
+        },
+      },
+      required: ['sessionId'],
+    },
+  },
+
   read_file: {
     name: READ_FILE_TOOL_NAME,
     description: `Reads and returns the content of a specified file. If the file is large, the content will be truncated. The tool's response will clearly indicate if truncation has occurred and will provide details on how to read more of the file using the 'start_line' and 'end_line' parameters. Handles text, images (PNG, JPG, GIF, WEBP, SVG, BMP), audio files (MP3, WAV, AIFF, AAC, OGG, FLAC), and PDF files. For text files, it can read specific line ranges.`,

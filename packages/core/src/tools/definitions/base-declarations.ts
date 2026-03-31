@@ -32,3 +32,4 @@ export const ACTIVATE_SKILL_TOOL_NAME = 'activate_skill';
 export const ASK_USER_TOOL_NAME = 'ask_user';
 export const EXIT_PLAN_MODE_TOOL_NAME = 'exit_plan_mode';
 export const ENTER_PLAN_MODE_TOOL_NAME = 'enter_plan_mode';
+export const READ_SESSION_TRACE_TOOL_NAME = 'read_session_trace';

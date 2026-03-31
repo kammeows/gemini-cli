@@ -34,6 +34,7 @@ import { WebFetchTool } from '../tools/web-fetch.js';
 import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { AskUserTool } from '../tools/ask-user.js';
+import { ReadSessionTraceTool } from '../tools/read-session-trace.js';
 import { ExitPlanModeTool } from '../tools/exit-plan-mode.js';
 import { EnterPlanModeTool } from '../tools/enter-plan-mode.js';
 import { GeminiClient } from '../core/client.js';
@@ -2644,6 +2645,9 @@ export class Config {
     );
     maybeRegister(ReadFileTool, () =>
       registry.registerTool(new ReadFileTool(this, this.messageBus)),
+    );
+    maybeRegister(ReadSessionTraceTool, () =>
+      registry.registerTool(new ReadSessionTraceTool(this, this.messageBus)),
     );
 
     if (this.getUseRipgrep()) {
