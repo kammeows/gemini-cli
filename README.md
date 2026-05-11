@@ -1,5 +1,7 @@
 # Gemini CLI Behavioral Evaluation & DevEx Experiments
 
+> Note: The prototype implementations are developed across dedicated feature branches. Please explore the repository branches for detailed implementations and related commits.
+
 > Explorations and prototype implementations focused on improving the behavioral evaluations, debugging infrastructure and developer experience for agentic CLI systems.
 
 ---
